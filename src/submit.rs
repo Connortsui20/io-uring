@@ -174,9 +174,10 @@ impl<'a> Submitter<'a> {
     ///
     /// # Safety
     ///
-    /// Developers must ensure that the `iov_base` and `iov_len` values are valid and will
-    /// be valid until buffers are unregistered or the ring destroyed, otherwise undefined
-    /// behaviour may occur.
+    /// Developers must ensure that every [`IoSliceMut`] in `bufs` contains a valid buffer that will
+    /// remain valid until either the buffers are all unregistered with
+    /// [`unregister_buffers`](Self::unregister_buffers) or the ring is destroyed.
+    /// Otherwise, undefined behavior may occur.
     pub unsafe fn register_buffers(&self, bufs: &[IoSliceMut<'_>]) -> io::Result<()> {
         execute(
             self.fd.as_raw_fd(),
