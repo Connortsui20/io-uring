@@ -5,6 +5,7 @@ use io_uring::types::Fd;
 use io_uring::{cqueue, opcode, squeue, types, IoUring};
 use once_cell::sync::OnceCell;
 use std::convert::TryInto;
+use std::io::IoSliceMut;
 use std::net::{Shutdown, TcpListener, TcpStream};
 use std::os::fd::FromRawFd;
 use std::os::unix::io::AsRawFd;
@@ -204,12 +205,9 @@ pub fn test_tcp_zero_copy_send_fixed<S: squeue::EntryMarker, C: cqueue::EntryMar
     let _ = ring.submitter().unregister_buffers();
 
     let mut buf0 = vec![0; 1024];
-    let iovec = libc::iovec {
-        iov_base: buf0.as_ptr() as _,
-        iov_len: buf0.len() as _,
-    };
-    let iovecs = [iovec];
-    unsafe { ring.submitter().register_buffers(&iovecs).unwrap() };
+    let ioslice = IoSliceMut::new(&mut buf0);
+
+    unsafe { ring.submitter().register_buffers(&[ioslice]).unwrap() };
 
     let text_len = text.len();
 

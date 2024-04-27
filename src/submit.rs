@@ -1,3 +1,4 @@
+use std::io::IoSliceMut;
 use std::os::unix::io::{AsRawFd, RawFd};
 use std::sync::atomic;
 use std::{io, mem, ptr};
@@ -176,7 +177,7 @@ impl<'a> Submitter<'a> {
     /// Developers must ensure that the `iov_base` and `iov_len` values are valid and will
     /// be valid until buffers are unregistered or the ring destroyed, otherwise undefined
     /// behaviour may occur.
-    pub unsafe fn register_buffers(&self, bufs: &[libc::iovec]) -> io::Result<()> {
+    pub unsafe fn register_buffers(&self, bufs: &[IoSliceMut<'_>]) -> io::Result<()> {
         execute(
             self.fd.as_raw_fd(),
             sys::IORING_REGISTER_BUFFERS,

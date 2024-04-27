@@ -51,16 +51,10 @@ pub fn test_register_buffers<S: squeue::EntryMarker, C: cqueue::EntryMarker>(
         .all(|(i, s)| s.iter().all(|&x| x == (b'A' + i as u8))));
 
     // Now actually set up and register the buffers
-
-    // Safety: `IoSliceMut` is ABI compatible with the `iovec` type on Unix platforms, so it is safe
-    // to cast these as `slices` is valid for this entire function
-    let iovecs: &[iovec] =
-        unsafe { std::slice::from_raw_parts(slices.as_ptr().cast(), slices.len()) };
-
     let submitter = ring.submitter();
     // Safety: Since `iovecs` is derived from valid `IoSliceMut`s, this upholds the safety contract
     // of `register_buffers` that the buffers are valid until the buffers are unregistered
-    unsafe { submitter.register_buffers(iovecs)? };
+    unsafe { submitter.register_buffers(&slices)? };
 
     // Prepare writing the buffers out to the file
     (0..BUFFERS).for_each(|index| {
